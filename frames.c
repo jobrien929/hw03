@@ -1,0 +1,50 @@
+#include "cs352proxy.h"
+#include "frames.h"
+
+int
+outgoing(void)
+{
+  return 0;
+}
+
+int
+newconnect(void)
+{
+  return 0;
+}
+
+int
+processFrame(Forward *frame)
+{
+  pthread_mutex_unlock(&forwardLock);
+  int r;
+  uint16_t type;
+  uint16_t length;
+  char buf[HEADER_SIZE + PAYLOAD_SIZE];
+  r =  readn(frame->, buf, HEADER_SIZE);
+  if(r == 0)
+    socket_closed(frame);
+
+  type = ntohs(*(uint16_t*)buf);
+  length = ntohs(*(uint16_t*)(buf+TYPE_SIZE));
+  return 0;
+
+  // figure out what we've got
+  switch(type)
+    {
+    case DATA:
+      break;
+    case LEAVE:
+      break;
+    case QUIT:
+      break;
+    case LINKSTATE:
+      break;
+    case RTTPRBRQST:
+      break;
+    case RTTPRBRESP:
+      break;
+    default:
+      ERROR("Unknown packet type\n", -1);
+    }
+}
