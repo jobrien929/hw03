@@ -68,7 +68,18 @@ processconfig(char* filename, Peer *head)
 		  ERROR("strdup error: client->port\n", -1);
 		}
 	      LL_PREPEND(head, client);
-	    } else
+	    }
+	    else if(!strcmp(token,"key"))
+	    {
+			memset(&(key[0]), 0x00, 32);
+			char *temp = strtok(NULL, DELIMS);
+			int size;
+			if((size = strlen(temp)) < 31){
+				memcpy(&(key[0]), temp, size);
+			}else{
+				memcpy(&(key[0]), temp, 31);
+			}
+		} else
 	    {
 	      ERROR("Bad config file\n", -1);
 	    }

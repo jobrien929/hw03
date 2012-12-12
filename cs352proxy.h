@@ -65,6 +65,7 @@ char *listenPort;
 int linkTimeout;
 int quitAfter;
 char *if_name;
+char key[32];
 
 
 typedef struct
