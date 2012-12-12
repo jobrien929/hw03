@@ -14,8 +14,30 @@ newconnect(void)
 }
 
 void processLinkState(char * buf) {
-	uint16_t num_neighbors = (uint16_t)buf[HEADER_SIZE];
-	
+	uint16_t num_records = *(uint16_t*)(buf+HEADER_SIZE);
+	int i;
+	int offset = HEADER_SIZE + NUM_PEERS_SIZE;
+	for (int i = 0; i < num_records; i++) {
+		uint16_t local_ip = ntohs(*(uint16_t *)(buf+offset));
+		offset += IP_SIZE;
+		uint16_t local_port = ntohs(*(uint16_t *)(buf+offset));
+		offset += PORT_SIZE;
+		char[6] local_mac;
+		memcpy(local_mac, (buf+offset), MAC_SIZE);
+		offset += MAC_SIZE;
+		uint16_t remote_ip = ntohs(*(uint16_t *)(buf+offset));
+		offset += IP_SIZE;
+		uint16_t remote_port = ntohs(*(uint16_t *)(buf+offset));
+		offset += PORT_SIZE;
+		char[6] remote_mac;
+		memcpy(remote_mac, (buf + offset), MAC_SIZE);
+		offset += MAC_SIZE;
+		uint32_t RTT = ntohs(*(uint32_t *)(buf+offset));
+		offset += RTT_SIZE;
+		unsigned long long ID = ntohs(*(unsigned long long *)(buf+offset));
+		offset += ID_SIZE;
+		
+	}
 	
 }
 

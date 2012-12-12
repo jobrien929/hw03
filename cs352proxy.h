@@ -66,11 +66,14 @@ int linkTimeout;
 int quitAfter;
 char *if_name;
 
+
 typedef struct
 {
   char mac[ETHER_ADDR_LEN];
   char ipaddr[NI_MAXHOST];
 } Localinfo;
+
+Localinfo linfo;
 
 typedef struct peer 
 {

@@ -4,12 +4,6 @@
 
 struct * node node_list = NULL;
 
-Member *memberTable = NULL;
-pthread_mutex_t memberLock = PTHREAD_MUTEX_INITIALIZER;
-
-Forward *forwardTable = NULL;
-pthread_mutex_t forwardLock = PTHREAD_MUTEX_INITIALIZER;
-
 int running = 1;
 pthread_mutex_t runLock = PTHREAD_MUTEX_INITIALIZER;
 
@@ -256,7 +250,6 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE);
 
   // Open tap and get fd and MAC
-  Localinfo linfo;
   int tap_fd, tcp_fd;
   if((tap_fd = allocate_tunnel(if_name, IFF_TAP | IFF_NO_PI, linfo.mac)) < 0)
     {
