@@ -89,6 +89,7 @@ struct connection_node {
 	int remote_ip;
 	int remote_port;
 	int RTT;
+	int ID;
 	int timestamp;
 	int next_hop;
 	UT_hash_handle hh;
