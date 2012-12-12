@@ -86,22 +86,23 @@ typedef struct peer
 
 
 struct connection_node {
-	int local_mac;
-	int local_ip;
-	int local_port;
-	int remote_mac;
-	int remote_ip;
-	int remote_port;
-	int RTT;
-	int ID;
-	int timestamp;
-	int next_hop;
+	char[6] local_mac;
+	uint16_t local_ip;
+	uint16_t local_port;
+	char[6] remote_mac;
+	uint16_t remote_ip;
+	uint16_t remote_port;
+	uint16_t RTT;
+	unsigned long long ID;
+	long int timestamp;
+	uint16_t next_hop;
 	UT_hash_handle hh;
 };
 
 struct node {
-	int local_mac;
+	char[6] local_mac;
 	struct connection_node * connection; //make sure to not search an empty hash table
+	int fd; //the actual port that the thing is using
 	UT_hash_handle hh;
 };
 extern int running;
