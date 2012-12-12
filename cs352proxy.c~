@@ -2,8 +2,6 @@
 #include "processconfig.h"
 #include "frames.h"
 
-struct * node node_list = NULL;
-
 Member *memberTable = NULL;
 pthread_mutex_t memberLock = PTHREAD_MUTEX_INITIALIZER;
 
@@ -283,17 +281,17 @@ int main(int argc, char **argv)
   // Main loop
   fd_set rd;
   int max, r;
-  Forward *temp; //forwarding table
+  Forward *temp;
   struct timeval timeout;
   while(runcheck())
     {
-      timeout.tv_sec = 3; // check for quit every 3 seconds | REPLACE WITH PIPE
+      timeout.tv_sec = 3; // check for quit every 3 seconds
       FD_ZERO(&rd);
       FD_SET(tap_fd, &rd);
       FD_SET(tcp_fd, &rd);
       max = MAX(tap_fd, tcp_fd);
       pthread_mutex_lock(&forwardLock);
-      for(temp = forwardTable; temp != NULL; temp = temp->hh.next) //issue
+      for(temp = forwardTable; temp != NULL; temp = temp->hh.next)
 	{
 	  FD_SET(temp->nexthop_fd, &rd);
 	  max = MAX(max, temp->nexthop_fd);
