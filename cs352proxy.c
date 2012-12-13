@@ -2,7 +2,7 @@
 #include "processconfig.h"
 #include "frames.h"
 
-struct * node node_list = NULL;
+
 
 int running = 1;
 pthread_mutex_t runLock = PTHREAD_MUTEX_INITIALIZER;

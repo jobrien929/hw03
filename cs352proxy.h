@@ -62,10 +62,11 @@
 
 int debug;
 char *listenPort;
-int linkTimeout;
+int linkTimeout;					//time out of a linkstate packet in seconds
 int quitAfter;
 char *if_name;
-char key[32];
+char key[32];						//Encryption key for extra credit
+struct node *node_list = NULL;
 
 
 typedef struct
@@ -86,10 +87,10 @@ typedef struct peer
 
 
 struct connection_node {
-	char[6] local_mac;
+	char local_mac[6];
 	uint16_t local_ip;
 	uint16_t local_port;
-	char[6] remote_mac;
+	char remote_mac[6];
 	uint16_t remote_ip;
 	uint16_t remote_port;
 	uint16_t RTT;
@@ -100,11 +101,12 @@ struct connection_node {
 };
 
 struct node {
-	char[6] local_mac;
+	char local_mac[6];
 	struct connection_node * connection; //make sure to not search an empty hash table
 	int fd; //the actual port that the thing is using
 	UT_hash_handle hh;
 };
+
 extern int running;
 extern pthread_mutex_t runLock;
 extern Forward *forwardTable;
