@@ -22,11 +22,10 @@ runcheck(void)
   return result;
 }
 
-int allocate_tunnel(char *dev, int flags, char* local_mac) {
+int allocate_tunnel(char *dev, int flags) {
         int fd, error;
         struct ifreq ifr;
         char *device_name = "/dev/net/tun";
-        char buffer[MAX_DEV_LINE];
         if( (fd = open(device_name , O_RDWR)) < 0 ) {
                 fprintf(stderr,"error opening /dev/net/tun\n%d: %s\n",errno,strerror(errno));
                 return fd;
@@ -42,14 +41,18 @@ int allocate_tunnel(char *dev, int flags, char* local_mac) {
                 return error;
         }
         strcpy(dev, ifr.ifr_name);
-        // Get device MAC address //
-        
-        sprintf(buffer,"/sys/class/net/%s/address",dev);
-        FILE* f = fopen(buffer,"r");
-        fread(buffer,1,MAX_DEV_LINE,f);
-        sscanf(buffer,"%hhX:%hhX:%hhX:%hhX:%hhX:%hhX",local_mac,local_mac+1,local_mac+2,local_mac+3,local_mac+4,local_mac+5);
-        fclose(f);
         return fd;
+}
+
+void
+getmac(char *dev, char *local_mac)
+{
+  char *buffer;
+  sprintf(buffer,"/sys/class/net/%s/address",dev);
+  FILE* f = fopen(buffer,"r");
+  fread(buffer,1,MAX_DEV_LINE,f);
+  sscanf(buffer,"%hhX:%hhX:%hhX:%hhX:%hhX:%hhX",local_mac,local_mac+1,local_mac+2,local_mac+3,local_mac+4,local_mac+5);
+  fclose(f);
 }
 
 /* Reads exactly length bytes from fd into *buf. */
@@ -101,7 +104,7 @@ linkstatesize(int num_peers)
          
 }
 
-int
+uint32_t
 getnumip(char *addr)
 {
   int d1, d2, d3, d4;
@@ -178,23 +181,25 @@ make_connection(Peer *peerList, int tap_fd, Localinfo *info)
 
 
 int
-getip(Localinfo *linfo)
+getip(uint32_t *ip)
 {
   struct ifaddrs *ifaddr, *ifa;
   if(getifaddrs(&ifaddr))
     {
       ERROR("error: getifaddr\n", -1);
     }
-  for(ifa = ifaddr; ifa != NULL || !strcmp(if_name, ifa->ifa_name); ifa = ifa->ifa_next);
+  for(ifa = ifaddr; ifa != NULL || !strcmp("eth0", ifa->ifa_name); ifa = ifa->ifa_next);
   if(ifa == NULL)
     {
       ERROR("error: interface not found\n", 0);
     }
-  if(getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in), linfo->ipaddr, NI_MAXHOST, NULL, 0, NI_NUMERICHOST))
+  char ip_addr[NI_MAXHOST];
+  if(getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in), ip_addr, NI_MAXHOST, NULL, 0, NI_NUMERICHOST))
     {
       ERROR("error: getnameinfo\n", -1);
     }
-  return 0;
+
+  return getnumip(ip_addr);
 }
 
 int
@@ -254,17 +259,31 @@ int main(int argc, char **argv)
   if (processconfig(configfile, peerList) < 0)
     exit(EXIT_FAILURE);
 
-  // Open tap and get fd and MAC
-  int tap_fd, tcp_fd;
-  if((tap_fd = allocate_tunnel(if_name, IFF_TAP | IFF_NO_PI, linfo.mac)) < 0)
+  // Make node for this proxy
+  node *this;
+  char *dev;
+  if(!(this = malloc(sizeof(node))))
     {
-      ERROR("Can't open TAP\n", EXIT_FAILURE);
+      ERROR("Malloc error making node\n", EXIT_FAILURE);
     }
+  if(if_name == NULL)
+    {
+      dev = if_name;
+    } else
+    {
+      dev = "eth0";
+    }
+  getmac(dev, this->local_mac);
 
-  // Get local ip address
-  if(getip(&linfo)){
-    exit(EXIT_FAILURE);
+  // Open tap
+  int tap_fd, tcp_fd;
+  if(if_name != NULL){
+    if((tap_fd = allocate_tunnel(if_name, IFF_TAP | IFF_NO_PI)) < 0)
+      {
+	ERROR("Can't open TAP\n", EXIT_FAILURE);
+      }
   }
+
 
   // Make initial connections
   if((make_connection(peerList, tap_fd, &linfo)) < 0)
@@ -287,7 +306,10 @@ int main(int argc, char **argv)
     {
       timeout.tv_sec = 3; // check for quit every 3 seconds | REPLACE WITH PIPE
       FD_ZERO(&rd);
-      FD_SET(tap_fd, &rd);
+      if(if_name != NULL)
+	{
+	  FD_SET(tap_fd, &rd);
+	}
       FD_SET(tcp_fd, &rd);
       max = MAX(tap_fd, tcp_fd);
       pthread_mutex_lock(&graphLock);

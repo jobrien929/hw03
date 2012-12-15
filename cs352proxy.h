@@ -64,18 +64,8 @@ int debug;
 char *listenPort;
 int linkTimeout;					//time out of a linkstate packet in seconds
 int quitAfter;
-char *if_name;
+char *if_name = NULL;
 char key[32];						//Encryption key for extra credit
-struct node *node_list = NULL;
-
-
-typedef struct
-{
-  char mac[ETHER_ADDR_LEN];
-  char ipaddr[NI_MAXHOST];
-} Localinfo;
-
-Localinfo linfo;
 
 typedef struct peer 
 {
@@ -87,24 +77,24 @@ typedef struct peer
 
 
 typedef struct connection_node {
-	char local_mac[6];
-	uint16_t local_ip;
-	uint16_t local_port;
-	char remote_mac[6];
-	uint16_t remote_ip;
-	uint16_t remote_port;
-	uint16_t RTT;
-	unsigned long long ID;
-	long int timestamp;
-	uint16_t next_hop;
-	UT_hash_handle hh;
+  char remote_mac[6];
+  uint16_t remote_ip;
+  uint16_t remote_port;
+  uint16_t RTT;
+  unsigned long long ID;
+  unsigned long long *timestamp;
+  UT_hash_handle hh;
 } connection_node;
 
 typedef struct node {
-	char local_mac[6];
-	struct connection_node * connection; //make sure to not search an empty hash table
-	int fd; //the actual port that the thing is using
-	UT_hash_handle hh;
+  char local_mac[6];
+  uint32_t local_ip;
+  uint16_t local_port;
+  connection_node * connection;
+  int fd; //the actual port that the thing is using
+  int num_connections;
+  int neighbor;
+  UT_hash_handle hh;
 } node;
 
 extern int running;
