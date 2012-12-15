@@ -113,7 +113,7 @@ getnumip(char *addr)
 }
 
 int
-make_connection(Peer *peerList, int tap_fd, Localinfo *info)
+make_connection(Peer *peerList, node *info)
 {
   struct addrinfo hints, *res;
   Peer *elt, *tmp;
@@ -121,7 +121,6 @@ make_connection(Peer *peerList, int tap_fd, Localinfo *info)
   char buf[HEADER_SIZE + PAYLOAD_SIZE];
   int offset;
   int len = HEADER_SIZE+NUM_PEERS_SIZE+IP_SIZE+PORT_SIZE+MAC_SIZE+ID_SIZE;
-  int local_ip = getnumip(info->ipaddr);
   struct timeval time;
 
   LL_FOREACH_SAFE(peerList, elt, tmp)
@@ -155,11 +154,11 @@ make_connection(Peer *peerList, int tap_fd, Localinfo *info)
       offset += LENGTH_SIZE;
       *((uint16_t*)(buf+offset)) = htons(1);
       offset += NUM_PEERS_SIZE;
-      *((uint32_t*)(buf+offset)) = htonl(local_ip);
+      *((uint32_t*)(buf+offset)) = htonl(info->local_ip);
       offset += IP_SIZE;
-      *((uint16_t*)(buf+offset)) = htons(atoi(listenPort));
+      *((uint16_t*)(buf+offset)) = htons(info->local_port);
       offset += PORT_SIZE;
-      memcpy(buf+offset, info->mac, MAC_SIZE);
+      memcpy(buf+offset, info->local_mac, MAC_SIZE);
       offset += MAC_SIZE;
       gettimeofday(&time, NULL);
       *((uint32_t*)(buf+offset)) = htonl(time.tv_sec);
@@ -274,6 +273,16 @@ int main(int argc, char **argv)
       dev = "eth0";
     }
   getmac(dev, this->local_mac);
+  if(getip(&(this->local_ip)))
+    {
+      ERROR("error: getip\n", EXIT_FAILURE);
+    }
+  this->local_port = (uint16_t)atol(listenPort);
+  this->connections = NULL;
+  this->num_connections = 0;
+  this->neighbor = 0;
+
+  HASH_ADD_STR(graph, local_mac, this);
 
   // Open tap
   int tap_fd, tcp_fd;
@@ -286,7 +295,7 @@ int main(int argc, char **argv)
 
 
   // Make initial connections
-  if((make_connection(peerList, tap_fd, &linfo)) < 0)
+  if((make_connection(peerList, this)) < 0)
     exit(EXIT_FAILURE);
 
   // Make listening port

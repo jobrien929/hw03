@@ -90,7 +90,7 @@ typedef struct node {
   char local_mac[6];
   uint32_t local_ip;
   uint16_t local_port;
-  connection_node * connection;
+  connection_node * connections;
   int fd; //the actual port that the thing is using
   int num_connections;
   int neighbor;
