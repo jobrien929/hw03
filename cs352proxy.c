@@ -7,7 +7,7 @@
 int running = 1;
 pthread_mutex_t runLock = PTHREAD_MUTEX_INITIALIZER;
 
-struct node *Graph = NULL;
+struct node *graph = NULL;
 pthread_mutex_t graphLock = PTHREAD_MUTEX_INITIALIZER;
 
 
@@ -281,7 +281,7 @@ int main(int argc, char **argv)
   // Main loop
   fd_set rd;
   int max, r;
-  Forward *temp; //forwarding table
+  node *temp;
   struct timeval timeout;
   while(runcheck())
     {
@@ -290,13 +290,13 @@ int main(int argc, char **argv)
       FD_SET(tap_fd, &rd);
       FD_SET(tcp_fd, &rd);
       max = MAX(tap_fd, tcp_fd);
-      pthread_mutex_lock(&forwardLock);
-      for(temp = forwardTable; temp != NULL; temp = temp->hh.next) //issue
+      pthread_mutex_lock(&graphLock);
+      for(temp = graph; temp != NULL; temp = temp->hh.next)
 	{
-	  FD_SET(temp->nexthop_fd, &rd);
-	  max = MAX(max, temp->nexthop_fd);
+	  FD_SET(temp->fd, &rd);
+	  max = MAX(max, temp->fd);
 	}
-      pthread_mutex_unlock(&forwardLock);
+      pthread_mutex_unlock(&graphLock);
       r = select(max+1, &rd, NULL, NULL, &timeout);
 
       if(r == -1 && errno == EINTR)
@@ -310,13 +310,13 @@ int main(int argc, char **argv)
       if(FD_ISSET(tcp_fd, &rd))
 	newconnect();
 
-      pthread_mutex_lock(&forwardLock);
-      for(temp = forwardTable; temp != NULL; temp = temp->hh.next)
+      pthread_mutex_lock(&graphLock);
+      for(temp = graph; temp != NULL; temp = temp->hh.next)
 	{
-	  if(FD_ISSET(temp->nexthop_fd, &rd))
+	  if(FD_ISSET(temp->fd, &rd))
 	    processFrame(temp);
 	}
-      pthread_mutex_unlock(&forwardLock);
+      pthread_mutex_unlock(&graphLock);
 
     }
 
