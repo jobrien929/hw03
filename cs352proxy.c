@@ -7,6 +7,11 @@
 int running = 1;
 pthread_mutex_t runLock = PTHREAD_MUTEX_INITIALIZER;
 
+struct node *Graph = NULL;
+pthread_mutex_t graphLock = PTHREAD_MUTEX_INITIALIZER;
+
+
+
 int
 runcheck(void)
 {

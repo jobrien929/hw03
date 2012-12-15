@@ -86,7 +86,7 @@ typedef struct peer
 
 
 
-struct connection_node {
+typedef struct connection_node {
 	char local_mac[6];
 	uint16_t local_ip;
 	uint16_t local_port;
@@ -98,21 +98,18 @@ struct connection_node {
 	long int timestamp;
 	uint16_t next_hop;
 	UT_hash_handle hh;
-};
+} connection_node;
 
-struct node {
+typedef struct node {
 	char local_mac[6];
 	struct connection_node * connection; //make sure to not search an empty hash table
 	int fd; //the actual port that the thing is using
 	UT_hash_handle hh;
-};
+} node;
 
 extern int running;
-extern pthread_mutex_t runLock;
-extern Forward *forwardTable;
-extern pthread_mutex_t forwardLock;
-extern Member *memberTable;
-extern pthread_mutex_t memberLock;  // kinda sounds like something you'd need ointment to correct
+extern node *Graph;
+extern pthread_mutex_t graphLock;
 
 int readn(int fd, char *buf, int length);
 int writen(int fd, char *buf, int length);
