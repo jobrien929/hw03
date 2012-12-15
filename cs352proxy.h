@@ -37,8 +37,8 @@
 #define PORT_SIZE       2
 #define MAC_SIZE        6
 #define RTT_SIZE        4
-#define ID_SIZE         8
-#define TIME_SIZE       4
+#define ID_SIZE         (sizeof(unsigned long long))
+#define TIME_SIZE       (sizeof(unsigned long long))
 #define HEADER_SIZE     (TYPE_SIZE + LENGTH_SIZE)
 
 // Packet types
@@ -96,6 +96,8 @@ typedef struct node {
   int neighbor;
   UT_hash_handle hh;
 } node;
+
+node *host;
 
 extern int running;
 extern node *Graph;

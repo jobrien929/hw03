@@ -3,6 +3,15 @@
 #include <time.h>
 #include "uthash.h"
 
+unsigned long long
+timestamp(void)
+{
+  unsigned long long tmstmp;
+  timeval time;
+  gettimeofday(&time, NULL);
+  return (time.tv_sec<<sizeof(time.tv_sec))+time.tv_usec;
+}
+
 int
 outgoing(void)
 {
