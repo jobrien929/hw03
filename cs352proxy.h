@@ -84,7 +84,7 @@ typedef struct connection_node {
   unsigned long long ID;
   unsigned long long *timestamp;
   UT_hash_handle hh;
-} connection_node;
+} Member;
 
 typedef struct node {
   char local_mac[6];
@@ -95,7 +95,7 @@ typedef struct node {
   int num_connections;
   int neighbor;
   UT_hash_handle hh;
-} node;
+} Forward;
 
 node *host;
 

@@ -37,8 +37,8 @@
 #define PORT_SIZE       2
 #define MAC_SIZE        6
 #define RTT_SIZE        4
-#define ID_SIZE         8
-#define TIME_SIZE       4
+#define ID_SIZE         (sizeof(unsigned long long))
+#define TIME_SIZE       (sizeof(unsigned long long))
 #define HEADER_SIZE     (TYPE_SIZE + LENGTH_SIZE)
 
 // Packet types
@@ -62,15 +62,10 @@
 
 int debug;
 char *listenPort;
-int linkTimeout;
+int linkTimeout;					//time out of a linkstate packet in seconds
 int quitAfter;
-char *if_name;
-
-typedef struct
-{
-  char mac[ETHER_ADDR_LEN];
-  char ipaddr[NI_MAXHOST];
-} Localinfo;
+char *if_name = NULL;
+char key[32];						//Encryption key for extra credit
 
 typedef struct peer 
 {
@@ -79,34 +74,34 @@ typedef struct peer
   struct peer *next;
 } Peer;
 
-typedef struct
-{
-  char *srcmac;
-  char *srcip;
-  char *srcport;
-  char *destmac;
-  char *destip;
-  char *destport;
-  int rtt;
-  unsigned long long id;
-  unsigned long long timestamp;
-  int fd;
-  UT_hash_handle hh;
-} Member;
 
-typedef struct
-{
-  char *destmac;
-  int nexthop_fd;
+
+typedef struct connection_node {
+  char remote_mac[6];
+  uint16_t remote_ip;
+  uint16_t remote_port;
+  uint16_t RTT;
+  unsigned long long ID;
+  unsigned long long *timestamp;
   UT_hash_handle hh;
-} Forward;
+} connection_node;
+
+typedef struct node {
+  char local_mac[6];
+  uint32_t local_ip;
+  uint16_t local_port;
+  connection_node * connections;
+  int fd; //the actual port that the thing is using
+  int num_connections;
+  int neighbor;
+  UT_hash_handle hh;
+} node;
+
+node *host;
 
 extern int running;
-extern pthread_mutex_t runLock;
-extern Forward *forwardTable;
-extern pthread_mutex_t forwardLock;
-extern Member *memberTable;
-extern pthread_mutex_t memberLock;  // kinda sounds like something you'd need ointment to correct
+extern node *Graph;
+extern pthread_mutex_t graphLock;
 
 int readn(int fd, char *buf, int length);
 int writen(int fd, char *buf, int length);
